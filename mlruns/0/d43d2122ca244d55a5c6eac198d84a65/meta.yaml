@@ -1,0 +1,15 @@
+artifact_uri: file:///home/runner/work/autoquant-infer/autoquant-infer/mlruns/0/d43d2122ca244d55a5c6eac198d84a65/artifacts
+end_time: 1749016118540
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: d43d2122ca244d55a5c6eac198d84a65
+run_name: popular-ram-289
+run_uuid: d43d2122ca244d55a5c6eac198d84a65
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1749016115443
+status: 3
+tags: []
+user_id: runner
