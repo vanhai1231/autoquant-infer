@@ -1,6 +1,5 @@
 name: CI Pipeline
 
-# Kích hoạt workflow khi có push hoặc pull request vào nhánh main
 on:
   push:
     branches:
@@ -9,74 +8,62 @@ on:
     branches:
       - main
 
-# Định nghĩa các công việc (jobs) cần thực hiện
 jobs:
   build-and-test:
-    # Sử dụng máy ảo Ubuntu 22.04 làm môi trường chạy
     runs-on: ubuntu-22.04
 
-    # Các bước (steps) thực hiện trong công việc
     steps:
-      # Bước 1: Checkout mã nguồn từ repository
       - name: Checkout code
-        uses: actions/checkout@v4  # Cập nhật lên phiên bản mới nhất của actions/checkout
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Lấy toàn bộ lịch sử commit để hỗ trợ DVC
+          fetch-depth: 0
 
-      # Bước 2: Cài đặt Python
       - name: Set up Python
-        uses: actions/setup-python@v5  # Cập nhật lên phiên bản mới nhất của actions/setup-python
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.10.12'  # Phiên bản Python cụ thể
-          cache: 'pip'  # Bật cache để tăng tốc cài đặt dependencies
+          python-version: '3.10.12'
+          cache: 'pip'
 
-      # Bước 3: Cài đặt các dependencies cần thiết
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install dvc mlflow tensorflow scikit-learn pandas numpy
-          # Đảm bảo DVC được cài đặt chính xác
           dvc --version
-          # Kiểm tra phiên bản của các thư viện chính
           python -m pip list | grep -E 'dvc|mlflow|tensorflow|scikit-learn|pandas|numpy'
 
-      # Bước 4: Kiểm tra cấu trúc thư mục (để gỡ lỗi)
       - name: Check directory structure
         run: |
-          ls -R .  # Hiển thị cấu trúc thư mục để kiểm tra
+          ls -R .
 
-      # Bước 5: Khởi tạo DVC
-      - name: Initialize DVC
+      - name: Initialize DVC (no-scm mode)
         run: |
-          dvc init --no-scm -f  # Sử dụng -f để buộc khởi tạo nếu .dvc đã tồn tại
-          dvc config core.no_scm true  # Cho phép DVC hoạt động mà không cần Git
-          # (Tùy chọn) Cấu hình DVC remote nếu cần
-          # dvc remote add origin <remote-URL>
-          # dvc pull  # Lấy dữ liệu từ remote nếu có
+          dvc init --no-scm -f
+          dvc config core.no_scm true
 
-      # Bước 6: Chạy AI Agent
+      - name: Pull data from DVC (nếu có)
+        run: |
+          dvc pull data/raw/sample_data.csv.dvc || echo "Không tìm thấy remote hoặc file DVC - bỏ qua"
+
       - name: Run AI Agent
         env:
-          PYTHONPATH: ${PYTHONPATH}:.  # Thêm thư mục gốc vào PYTHONPATH để tránh ModuleNotFoundError
+          PYTHONPATH: ${PYTHONPATH}:.
         run: |
+          echo "Bắt đầu chạy AI Agent..."
           python scripts/ai_agent.py
 
-      # Bước 7: Commit và đẩy thay đổi từ DVC
-      - name: Commit DVC changes
+      - name: Commit & push DVC changes (nếu có)
         run: |
-          git add .
           git config --global user.email "vanhai11203@gmail.com"
           git config --global user.name "vanhai1231"
-          git commit -m "AI Agent: Cập nhật dữ liệu và mô hình" || echo "No changes to commit"
-          # Đẩy thay đổi lên repository
+          git add .
+          git commit -m "AI Agent: Cập nhật dữ liệu và mô hình" || echo "✅ Không có thay đổi mới"
           git push origin main
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Sử dụng token mặc định của GitHub
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Bước 8: Xác minh kết quả
       - name: Verify completion
-        if: always()  # Chạy bước này bất kể thành công hay thất bại
+        if: always()
         run: |
-          echo "Pipeline completed at $(date -u) UTC"
-          # (Tùy chọn) Kiểm tra kết quả mô hình quantized
-          ls -lh models/ || echo "No models directory found"
+          echo "Pipeline hoàn tất lúc $(date -u) UTC"
+          echo "Kiểm tra thư mục models/"
+          ls -lh models/ || echo "Không tìm thấy models/"
