@@ -1,3 +1,9 @@
+import sys
+import os
+
+# Thêm thư mục gốc của dự án vào sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from scripts.dvc_management import ai_agent_data_update
 from scripts.mlflow_management import train_and_log_model, ai_agent_model_registry
 from scripts.quantization import ai_agent_quantization_optimization
