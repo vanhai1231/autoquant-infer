@@ -20,15 +20,19 @@ def create_sample_model(data_path="data/raw/sample_data.csv"):
     return model, X, y
 
 def apply_quantization(model, quantization_type="int8"):
-    """Áp dụng post-training quantization."""
+    """Áp dụng post-training quantization đúng cách với dữ liệu đại diện."""
     converter = tf.lite.TFLiteConverter.from_keras_model(model)
 
     if quantization_type == "int8":
         converter.optimizations = [tf.lite.Optimize.DEFAULT]
-        converter.target_spec.supported_types = [tf.int8]
+
+        def representative_data_gen():
+            for x in np.linspace(0, 10, 100, dtype=np.float32):
+                yield [np.array([[x]], dtype=np.float32)]  # Phải là list chứa input
+
+        converter.representative_dataset = representative_data_gen
         converter.inference_input_type = tf.int8
         converter.inference_output_type = tf.int8
-        converter.representative_dataset = lambda: [np.array([[x]], dtype=np.float32) for x in np.linspace(0, 10, 100)]
     elif quantization_type == "dynamic":
         converter.optimizations = [tf.lite.Optimize.DEFAULT]
 
