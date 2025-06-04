@@ -1,5 +1,6 @@
 name: CI Pipeline
 
+# Kích hoạt workflow khi có push hoặc pull request vào nhánh main
 on:
   push:
     branches:
@@ -8,37 +9,59 @@ on:
     branches:
       - main
 
+# Định nghĩa các công việc (jobs) cần thực hiện
 jobs:
   build-and-test:
+    # Sử dụng máy ảo Ubuntu 22.04 làm môi trường chạy
     runs-on: ubuntu-22.04
 
+    # Các bước (steps) thực hiện trong công việc
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      # Bước 1: Checkout mã nguồn từ repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Lấy toàn bộ lịch sử commit để hỗ trợ DVC
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.10.12'
+      # Bước 2: Cài đặt Python
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10.12'  # Phiên bản Python cụ thể
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install dvc mlflow tensorflow scikit-learn pandas numpy
+      # Bước 3: Cài đặt các dependencies cần thiết
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install dvc mlflow tensorflow scikit-learn pandas numpy
+          # Đảm bảo DVC được cài đặt chính xác
+          dvc --version
 
-    - name: Initialize DVC
-      run: |
-        dvc init --no-scm
-        dvc config core.no_scm true
+      # Bước 4: Khởi tạo DVC
+      - name: Initialize DVC
+        run: |
+          dvc init --no-scm -f  # Sử dụng -f để buộc khởi tạo nếu .dvc đã tồn tại
+          dvc config core.no_scm true  # Cho phép DVC hoạt động mà không cần Git
 
-    - name: Run AI Agent
-      run: |
-        python scripts/ai_agent.py
+      # Bước 5: Chạy AI Agent
+      - name: Run AI Agent
+        run: |
+          python scripts/ai_agent.py
 
-    - name: Commit DVC changes
-      run: |
-        git add .
-        git config --global user.email "vanhai11203@gmail.com"
-        git config --global user.name "vanhai1231"
-        git commit -m "AI Agent: Cập nhật dữ liệu và mô hình" || echo "No changes to commit"
-        git push
+      # Bước 6: Commit và đẩy thay đổi từ DVC
+      - name: Commit DVC changes
+        run: |
+          git add .
+          git config --global user.email "vanhai11203@gmail.com"
+          git config --global user.name "vanhai1231"
+          git commit -m "AI Agent: Cập nhật dữ liệu và mô hình" || echo "No changes to commit"
+          # Đẩy thay đổi lên repository
+          git push origin main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Sử dụng token mặc định của GitHub
+
+      # Bước 7: Xác minh kết quả (tùy chọn)
+      - name: Verify completion
+        if: success() || failure()
+        run: |
+          echo "Pipeline completed at $(date -u) UTC"
