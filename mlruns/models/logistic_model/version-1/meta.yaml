@@ -1,0 +1,14 @@
+aliases: []
+creation_timestamp: 1749015551691
+current_stage: None
+description: null
+last_updated_timestamp: 1749015551691
+name: logistic_model
+run_id: 0ce7aa1c4f9049a1be99b029cef24d7e
+run_link: null
+source: runs:/0ce7aa1c4f9049a1be99b029cef24d7e/model
+status: READY
+status_message: null
+storage_location: runs:/0ce7aa1c4f9049a1be99b029cef24d7e/model
+user_id: null
+version: 1
