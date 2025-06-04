@@ -44,6 +44,21 @@ jobs:
         run: |
           dvc pull data/raw/sample_data.csv.dvc || echo "Không tìm thấy remote hoặc file DVC - bỏ qua"
 
+      - name: Tạo file sample_data.csv nếu chưa tồn tại
+        run: |
+          if [ ! -f data/raw/sample_data.csv ]; then
+            mkdir -p data/raw
+            echo "feature,label" > data/raw/sample_data.csv
+            echo "1,0" >> data/raw/sample_data.csv
+            echo "2,1" >> data/raw/sample_data.csv
+            echo "3,0" >> data/raw/sample_data.csv
+            echo "4,1" >> data/raw/sample_data.csv
+            echo "5,0" >> data/raw/sample_data.csv
+            echo "Đã tạo file sample_data.csv"
+          else
+            echo "Đã tồn tại sample_data.csv, không cần tạo"
+          fi
+
       - name: Run AI Agent
         env:
           PYTHONPATH: ${PYTHONPATH}:.
@@ -56,7 +71,7 @@ jobs:
           git config --global user.email "vanhai11203@gmail.com"
           git config --global user.name "vanhai1231"
           git add .
-          git commit -m "AI Agent: Cập nhật dữ liệu và mô hình" || echo "✅ Không có thay đổi mới"
+          git commit -m "AI Agent: Cập nhật dữ liệu và mô hình" || echo "Không có thay đổi mới"
           git push origin main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
