@@ -242,7 +242,7 @@ Memory Usage:
 <tr>
 <td align="center">
 <img src="https://img.shields.io/badge/📧%20Email-Support-D14836?style=for-the-badge&logo=gmail&logoColor=white" />
-<br><b>support@quantagent.dev</b>
+<br><b>vanhai11203@gmail.com</b>
 </td>
 <td align="center">
 <img src="https://img.shields.io/badge/💬%20Discord-Community-5865F2?style=for-the-badge&logo=discord&logoColor=white" />
