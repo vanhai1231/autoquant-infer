@@ -19,15 +19,16 @@ jobs:
     steps:
       # Bước 1: Checkout mã nguồn từ repository
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4  # Cập nhật lên phiên bản mới nhất của actions/checkout
         with:
           fetch-depth: 0  # Lấy toàn bộ lịch sử commit để hỗ trợ DVC
 
       # Bước 2: Cài đặt Python
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5  # Cập nhật lên phiên bản mới nhất của actions/setup-python
         with:
           python-version: '3.10.12'  # Phiên bản Python cụ thể
+          cache: 'pip'  # Bật cache để tăng tốc cài đặt dependencies
 
       # Bước 3: Cài đặt các dependencies cần thiết
       - name: Install dependencies
@@ -36,19 +37,31 @@ jobs:
           pip install dvc mlflow tensorflow scikit-learn pandas numpy
           # Đảm bảo DVC được cài đặt chính xác
           dvc --version
+          # Kiểm tra phiên bản của các thư viện chính
+          python -m pip list | grep -E 'dvc|mlflow|tensorflow|scikit-learn|pandas|numpy'
 
-      # Bước 4: Khởi tạo DVC
+      # Bước 4: Kiểm tra cấu trúc thư mục (để gỡ lỗi)
+      - name: Check directory structure
+        run: |
+          ls -R .  # Hiển thị cấu trúc thư mục để kiểm tra
+
+      # Bước 5: Khởi tạo DVC
       - name: Initialize DVC
         run: |
           dvc init --no-scm -f  # Sử dụng -f để buộc khởi tạo nếu .dvc đã tồn tại
           dvc config core.no_scm true  # Cho phép DVC hoạt động mà không cần Git
+          # (Tùy chọn) Cấu hình DVC remote nếu cần
+          # dvc remote add origin <remote-URL>
+          # dvc pull  # Lấy dữ liệu từ remote nếu có
 
-      # Bước 5: Chạy AI Agent
+      # Bước 6: Chạy AI Agent
       - name: Run AI Agent
+        env:
+          PYTHONPATH: ${PYTHONPATH}:.  # Thêm thư mục gốc vào PYTHONPATH để tránh ModuleNotFoundError
         run: |
           python scripts/ai_agent.py
 
-      # Bước 6: Commit và đẩy thay đổi từ DVC
+      # Bước 7: Commit và đẩy thay đổi từ DVC
       - name: Commit DVC changes
         run: |
           git add .
@@ -60,8 +73,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Sử dụng token mặc định của GitHub
 
-      # Bước 7: Xác minh kết quả (tùy chọn)
+      # Bước 8: Xác minh kết quả
       - name: Verify completion
-        if: success() || failure()
+        if: always()  # Chạy bước này bất kể thành công hay thất bại
         run: |
           echo "Pipeline completed at $(date -u) UTC"
+          # (Tùy chọn) Kiểm tra kết quả mô hình quantized
+          ls -lh models/ || echo "No models directory found"
