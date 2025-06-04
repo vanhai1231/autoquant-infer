@@ -1,0 +1,15 @@
+artifact_uri: file:///home/runner/work/autoquant-infer/autoquant-infer/mlruns/0/d231dd9e011b439aafe18c3300b08bb8/artifacts
+end_time: 1749016372436
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: d231dd9e011b439aafe18c3300b08bb8
+run_name: classy-goat-168
+run_uuid: d231dd9e011b439aafe18c3300b08bb8
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1749016369372
+status: 3
+tags: []
+user_id: runner
